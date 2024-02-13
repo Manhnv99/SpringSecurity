@@ -1,5 +1,6 @@
 package com.nvm.demo.config;
 
+import com.nvm.demo.dao.UserDAO;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,7 +20,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
-    private final UserDetailsService userDetailsService;
+    private final UserDAO userDAO;
 
     private final JWTUtil jwtUtil;
 
@@ -34,9 +35,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
         jwtToken=authHeader.substring(7);
+        // tại sao lại substring 7 lý do là khi ta lấy 1 jwt thông qua tiêu đề Authorization thì chuỗi Bearer được đứng đầu chuỗi và đằng sau nó là chuỗi encode JWT để phân biệt giá trị nằm trong tiêu đề Authorization
+        //này là 1 chuỗi JWT và cắt nó ra là chỉ để lấy giá trị được mã hóa là JWT thôi
         userEmail=jwtUtil.extractUsername(jwtToken); //TODO tobe implement
         if(userEmail!=null && SecurityContextHolder.getContext().getAuthentication()==null){
-            UserDetails userDetails=userDetailsService.loadUserByUsername(userEmail);
+            UserDetails userDetails= userDAO.findUserByEmail(userEmail);
             if(jwtUtil.validateToken(jwtToken,userDetails)){
                 UsernamePasswordAuthenticationToken authToken=new UsernamePasswordAuthenticationToken(userDetails,
                         null,userDetails.getAuthorities());

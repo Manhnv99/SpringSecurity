@@ -1,6 +1,7 @@
 package com.nvm.demo.controller;
 
 import com.nvm.demo.config.JWTUtil;
+import com.nvm.demo.dao.UserDAO;
 import com.nvm.demo.request.AuthenticationRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,13 +22,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthenticationController {
 
     private final AuthenticationManager authenticationManager;
-    private UserDetailsService userDetailsService;
-    private JWTUtil jwtUtil;
+    private final UserDAO userDAO;
+    private final JWTUtil jwtUtil;
 
     @PostMapping("/authenticate")
     public ResponseEntity<?> authenticate(@RequestBody AuthenticationRequest authenticationRequest){
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authenticationRequest.getEmail(),authenticationRequest.getPassword()));
-        final UserDetails user= userDetailsService.loadUserByUsername(authenticationRequest.getEmail());
+        final UserDetails user= userDAO.findUserByEmail(authenticationRequest.getEmail());
         if(user!=null){
             return ResponseEntity.status(HttpStatus.OK).body(jwtUtil.generateToken(user));
         }else{

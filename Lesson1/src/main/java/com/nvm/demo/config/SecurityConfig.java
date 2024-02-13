@@ -1,5 +1,6 @@
 package com.nvm.demo.config;
 
+import com.nvm.demo.dao.UserDAO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,8 +11,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -20,33 +19,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
-
-    private final static List<UserDetails> APPLICATION_USERS= Arrays.asList(
-            new User(
-                    "nguyenvimanhnqt@gmail.com",
-                    "manhdz123",
-                    Collections.singletonList(new SimpleGrantedAuthority("USER_ADMIN"))
-            ),
-            new User(
-                    "nguyenvimanhnqtt@gmail.com",
-                    "manhdz123",
-                    Collections.singletonList(new SimpleGrantedAuthority("USER_USER"))
-            )
-    );
+    private final UserDAO userDAO;
 
     @Bean
     public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+        http.csrf().disable();
         http.authorizeRequests(authorize -> authorize
                 .anyRequest()
                 .authenticated());
@@ -81,11 +64,7 @@ public class SecurityConfig {
         return new UserDetailsService() {
             @Override
             public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-                return APPLICATION_USERS
-                        .stream()
-                        .filter(u->u.getUsername().equals(email))
-                        .findFirst()
-                        .orElseThrow(() -> new UsernameNotFoundException("No User was not found!"));
+                return userDAO.findUserByEmail(email);
             }
         };
     }
