@@ -19,7 +19,7 @@ public class SecurityFilterChainConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
-
+        System.out.println("run1");
         //Disable CORS
         httpSecurity.cors(AbstractHttpConfigurer::disable);
         //Disable CSRF
@@ -40,9 +40,7 @@ public class SecurityFilterChainConfig {
                 sessionConfig->sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS) //không tạo ra phiên làm việc -> đồng nghĩa với việc quản lý phiên do JWT quản lý.
         );
         //Add JWT Authentication Filter
-        httpSecurity.addFilterBefore(jwtAuthenticationFilter,
-                UsernamePasswordAuthenticationFilter.class);
-
+        httpSecurity.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();
     }

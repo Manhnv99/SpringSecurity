@@ -1,20 +1,25 @@
-package com.nvm.lesson2.utils;
+package com.nvm.backend.utils;
 
+
+import com.nvm.backend.entities.User;
+import com.nvm.backend.service.Impl.UserServiceImpl;
+import com.nvm.backend.service.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.time.DateUtils;
 
+
 import javax.crypto.SecretKey;
-import java.util.Date;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 public class JwtUtils {
 
-    private JwtUtils(){}
+    private JwtUtils(){
+    }
+
     private static final SecretKey secretKey= Jwts.SIG.HS256.key().build();
     private static final String ISSUER = "nvm_spring_security";
 
@@ -37,16 +42,26 @@ public class JwtUtils {
         return claimsOptional.map(Claims::getSubject); // lấy username từ chuỗi token được giải mã bằng phương thức có sẵn getSubject
     }
 
-    public static String generateToken(String username) {
+    public static String generateToken(User user) {
         var currentDate=new Date();
         var expiration= DateUtils.addMinutes(currentDate,10);
+        //find user by username
+        Map<String,Object> claims=new HashMap<>();
+        claims.put("id",user.getId());
+        claims.put("name",user.getName());
+        claims.put("username",user.getUsername());
+        claims.put("password",user.getPassword());
+        claims.put("role",user.getRole());
+
         return Jwts.builder()
                 .id(UUID.randomUUID().toString())
                 .issuer(ISSUER)
-                .subject(username)
+                .subject(user.getName())
+                .claims(claims)
                 .signWith(secretKey) //key đăng ký để decode
                 .issuedAt(currentDate) //ngày tạo
                 .expiration(expiration) //ngày hết hạn
                 .compact(); //kết thúc tạo 1 chuỗi token hoàn chỉnh
     }
+
 }

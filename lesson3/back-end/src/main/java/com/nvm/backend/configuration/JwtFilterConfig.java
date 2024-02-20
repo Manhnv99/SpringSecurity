@@ -1,6 +1,7 @@
-package com.nvm.lesson2.configuration;
+package com.nvm.backend.configuration;
 
-import com.nvm.lesson2.utils.JwtUtils;
+import com.nvm.backend.service.Impl.UserDetailServiceImpl;
+import com.nvm.backend.utils.JwtUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,7 +11,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -21,13 +21,13 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class JWTAuthenticationFilter extends OncePerRequestFilter {
+public class JwtFilterConfig extends OncePerRequestFilter {
 
-    private final UserDetailsService userDetailsService;
+    private final UserDetailServiceImpl userDetailService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        //fetch token form request
+
         var jwtTokenOptional=getTokenFromRequest(request);
         //validate JWT -> using JWT Utils
         jwtTokenOptional.ifPresent(jwtToken->{
@@ -36,7 +36,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                 var usernameOptional=JwtUtils.getUsernameFromToken(jwtToken);
                 usernameOptional.ifPresent(username->{
                     //Fetch user detail with the help of username
-                    UserDetails userDetails= userDetailsService.loadUserByUsername(username);
+                    UserDetails userDetails= userDetailService.loadUserByUsername(username);
                     //Create Authentication Token
                     var authenticationToken = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities()); // tạo 1 người dùng gồm tài khoản mật khẩu và quyền của người dùng đó.
                     authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request)); //thiết lập chi tiết của yêu cầu HTTP,như địa chỉ IP và thông tin trình duyệt,buildDetails sẽ tạo ra các chi tiết dựa trên đối tượng request được truyền vào
@@ -45,7 +45,6 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                 });
             }
         });
-        System.out.println("run2");
         //Pass request and response to next filter
         filterChain.doFilter(request,response); //chạy xác thực các filter chain đã được định nghĩa ở lớp SecurityFilterChainConfig
     }
