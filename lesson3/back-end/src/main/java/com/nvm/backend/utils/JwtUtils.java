@@ -30,7 +30,7 @@ public class JwtUtils {
     private static Optional<Claims> parseToken(String jwtToken) {
         var jwtParser = Jwts.parser().verifyWith(secretKey).build(); //giải mã token với chuỗi token được đưa vào lấy từ request -> giải mã với secret-key
         try{
-            return Optional.of(jwtParser.parseSignedClaims(jwtToken).getPayload());
+            return Optional.of(Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(jwtToken).getPayload());
         }catch (JwtException | IllegalArgumentException e){
             log.error("Jwt Exception occurred");
         }
@@ -52,7 +52,6 @@ public class JwtUtils {
         claims.put("username",user.getUsername());
         claims.put("password",user.getPassword());
         claims.put("role",user.getRole());
-
         return Jwts.builder()
                 .id(UUID.randomUUID().toString())
                 .issuer(ISSUER)
